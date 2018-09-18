@@ -398,7 +398,7 @@ var svg = d3.select("#chart").append("svg")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-// We set the initial country to Sweden. Users can change it afterwards.
+// We set the initial country to France. Users can change it afterwards.
 
 var dataset = "france_data.csv"
 
@@ -407,6 +407,7 @@ var dataset = "france_data.csv"
 
 if (sessionStorage.getItem('selected')){
     document.getElementById("country_menu").value = sessionStorage.getItem('selected');
+    dataset = document.getElementById("country_menu").value
   }
 else {
     document.getElementById("country_menu").value = 'sweden_data.csv'
