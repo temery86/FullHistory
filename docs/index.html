@@ -265,17 +265,18 @@ select#country_menu {
 <div class="togglebutton fast" data-val="fast">Fast</div>
 
 <select id="country_menu" onchange="select_country();">
-  <option value="sweden_data.csv">Sweden</option>
-  <option value="uk_data.csv">United Kingdom</option>
-  <option value="georgia_data.csv">Georgia</option>
-  <option value="france_data.csv">France</option>
-  <option value="lithuania_data.csv">Lithuania</option>
-  <option value="romania_data.csv">Romania</option>
-  <option value="germany_data.csv">Germany</option>
-  <option value="norway_data.csv">Norway</option>
-  <option value="poland_data.csv">Poland</option>
   <option value="czech_republic_data.csv">Czech Republic</option>
   <option value="belgium_data.csv">Belgium</option>
+  <option value="france_data.csv">France</option>
+  <option value="georgia_data.csv">Georgia</option>
+  <option value="germany_data.csv">Germany</option>
+  <option value="lithuania_data.csv">Lithuania</option>
+  <option value="moldova_data.csv">Moldova</option>
+  <option value="norway_data.csv">Norway</option>
+  <option value="poland_data.csv">Poland</option>
+  <option value="romania_data.csv">Romania</option>
+  <option value="sweden_data.csv">Sweden</option>
+  <option value="uk_data.csv">United Kingdom</option>  
 </select>
 
 <div class="update_button" onclick="history.go(0)">Update</div>
@@ -410,7 +411,7 @@ if (sessionStorage.getItem('selected')){
     dataset = document.getElementById("country_menu").value
   }
 else {
-    document.getElementById("country_menu").value = 'sweden_data.csv'
+    document.getElementById("country_menu").value = 'moldova_data.csv'
   }
 
 function select_country() {

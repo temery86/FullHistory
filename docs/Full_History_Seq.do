@@ -2,11 +2,34 @@
 * With this do file we want to create the data to be used as an imput for the
 * GGP Data Visualisation of full histories (partnerships and fertility).
 
-cd "C:\Users\temer\Desktop\Full History"
+cd "/Users/temery/Documents/GitHub/FullHistory/docs/"
 
 set matsize 10000
 
-use combinedfile_BiCh.dta, clear
+foreach COUNTRY in /*belgium czech_republic france georgia germany italy lituania netherlands norway poland romania sweden uk us uruguay*/ kazakhstan moldova {
+
+use HARMONIZED-HISTORIES_ALL_GGSaccess.dta, clear
+
+gen CNTRY = "NA"
+replace CNTRY = "belgium" if COUNTRY == 561
+replace CNTRY = "czech_republic" if COUNTRY == 2031
+replace CNTRY = "france" if COUNTRY == 2501
+replace CNTRY = "georgia" if COUNTRY == 2681
+replace CNTRY = "germany" if COUNTRY == 2761
+replace CNTRY = "italy" if COUNTRY == 3801
+replace CNTRY = "lithuania" if COUNTRY == 4401
+replace CNTRY = "netherlands" if COUNTRY == 5282
+replace CNTRY = "norway" if COUNTRY == 5781
+replace CNTRY = "poland" if COUNTRY == 6162
+replace CNTRY = "romania" if COUNTRY == 6421
+replace CNTRY = "sweden" if COUNTRY == 7521
+replace CNTRY = "uk" if COUNTRY == 8261
+replace CNTRY = "us" if COUNTRY == 8402
+replace CNTRY = "uruguay" if COUNTRY == 8581
+replace CNTRY = "kazkahstan" if COUNTRY == 8601
+replace CNTRY = "moldova" if COUNTRY == 4981
+
+keep if CNTRY == "`COUNTRY'"
 
 * We start by constructing sequences of events for each respondent. Codes for
 * event will we structured in this way:
@@ -24,9 +47,9 @@ use combinedfile_BiCh.dta, clear
 * We generate a group variable (which may be country group, cohort or anything else).
 * In this case we use it to create teo different cohorts
 
-generate group = 0
-replace group = 1 if (birth_y == 1950)
-replace group = 2 if (birth_y == 1970)
+generate group = .
+replace group = 1 if (BORN_Y == 1950)
+replace group = 2 if (BORN_Y == 1970)
 
 * We extract a random sample of 250 units from each cohort.
 
@@ -41,12 +64,21 @@ by group: sample `sample_size', count
 local start_month = 15*12
 local end_month = 40*12
 
+
 * We generate a variable for each of the first four children with the age
 * of the respondent at the birth of the child in months. To that we remove
 * the start month so that we don't have a very long initial period with the
 * same status (i.e. childless).
 
 local i = 1
+
+recode KID_M* BORN_M UNION_Y* SEP_Y* MARR_Y* DIV_Y* (21 = 1) (22 = 4) (23 = 7) (24 = 10) (25 = 12)
+
+gen birth_cmc = (BORN_Y - 1900)*12 + BORN_M
+
+forval x = 1(1)4 {
+	gen birth_cmc_ch`x' = ((KID_Y`x' - 1900)*12) + KID_M`x'
+}
 
 foreach var of varlist birth_cmc_ch1-birth_cmc_ch4 {
 
@@ -56,6 +88,7 @@ foreach var of varlist birth_cmc_ch1-birth_cmc_ch4 {
 	
 	}
 	
+	
 * We now generate a variable for each possible event in the partnership history
 * with the respondent's age at that event in months. The possible events are:
 
@@ -63,6 +96,14 @@ foreach var of varlist birth_cmc_ch1-birth_cmc_ch4 {
 *		- married with partner
 * 		- ended a partnership
 * 		- divorced from partner
+
+forval x = 1(1)10 {
+	gen st_cmc_par`x' = ((UNION_Y`x' - 1900)*12) + UNION_M`x'
+	gen mar_cmc_par`x' = ((MARR_Y`x' - 1900)*12) + MARR_M`x'
+	gen end_cmc_par`x' = ((SEP_Y`x' - 1900)*12) + SEP_M`x'
+	gen div_cmc_par`x' = ((DIV_Y`x' - 1900)*12) + DIV_M`x'
+}
+
 
 local events st mar end div
 
@@ -89,7 +130,7 @@ keep 	age_birth_ch1-age_birth_ch4 ///
 		age_mar_par1-age_mar_par10 ///
 		age_end_par1-age_end_par10 ///
 		age_div_par1-age_div_par10 ///
-		howend_par1-howend_par10 ///
+		/*howend_par1-howend_par10*/ ///
 		group
 	
 * Our histories will start at age 15 and end at age 40 and each state will represent
@@ -107,7 +148,7 @@ forvalues i = 1(1)300 {
 * Now we proceed to actually create the sequences
 
 local max_num_of_ch = 4
-local max_num_of_par = 10
+local max_num_of_par = 9
 local sample_size = `sample_size' * `num_of_groups'
 
 forvalues i = 1(1)`sample_size' {
@@ -233,10 +274,26 @@ forvalues i = 1(1)`sample_size' {
 
 keep group status_var1-status_dur30
 
-export delimited using "/Users/Eugenio/Stata/NIDI_Stata/Data_Viz/FH_real.csv", novarnames replace
+ds, has(type string)
+foreach x in `r(varlist)' {
+	replace `x' = subinstr(`x', `"`=char(10)'"', "", .)
+	replace `x' = subinstr(`x', ".", "", .)
+}
 
 
 
+forval x = 1(1)30 {
+	rename status_dur`x' x_status_dur`x' 
+	tostring x_status_dur`x', gen(status_dur`x') 
+	drop x_status_dur`x'
+	replace status_dur`x' = "" if status_dur`x' == "0"
+	replace status_dur`x' = subinstr(status_dur`x', `"`=char(10)'"', "", .)
+	replace status_dur`x' = subinstr(status_dur`x', ".", "", .)
+}
+
+export delimited using "`COUNTRY'_data.csv", novarnames replace
+
+}
 
 
 
